@@ -37,13 +37,19 @@
         </div>
         <div class="row">
             <div class="col-6">
-                <h2 id="player1Name" style = "color:var(--player-1-color)">Player 1</h2>
+                <h2 id="player1Name" style="color:var(--player-1-color)">Player 1</h2>
+                <div id="player-1-box" class="box"></div>
             </div>
             <div class="col-6">
-                <h2 id="player2Name" style = "color:var(--player-2-color)">Player 2</h2>
+                <h2 id="player2Name" style="color:var(--player-2-color)">Player 2</h2>
+                <div id="player-2-box" class="box"></div>
             </div>
         </div>
         <div class="row">
+            <div class="col-12">
+                <div id="chat" class="box"></div>
+                <p>There are now <span id="player-count"></span> people playing.</p>
+            </div>
         </div>
     </div>
     <script src="https://www.gstatic.com/firebasejs/5.3.0/firebase.js"></script>

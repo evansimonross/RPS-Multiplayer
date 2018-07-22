@@ -22,6 +22,26 @@ h2{
     text-decoration: underline;
 }
 
+.box{
+    border: solid 3px;
+    margin: 25px;
+}
+
+#player-1-box{
+    border-color: var(--player-1-color);
+}
+
+#player-2-box{
+    border-color: var(--player-2-color);
+}
+
+#chat{
+    width: 50%;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+}
+
 @media screen and (max-width: 1200px){
     h1{
         font-size: 3em;
