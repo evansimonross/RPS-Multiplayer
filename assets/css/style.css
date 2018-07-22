@@ -1,0 +1,22 @@
+body{
+    font-family: 'Kanit', sans-serif;
+}
+
+h1{
+    text-align: center;
+    font-weight: 600;
+    font-size: 4em;
+    margin: 15px;
+}
+
+@media screen and (max-width: 1200px){
+    h1{
+        font-size: 3em;
+    }
+}
+
+@media screen and (max-width: 992px){
+    h1{
+        font-size: 2.5em;
+    }
+}
