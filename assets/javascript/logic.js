@@ -14,8 +14,9 @@ var database = firebase.database();
 var connectionsRef = database.ref("/connections");
 var connectedRef = database.ref(".info/connected");
 var gamesRef = database.ref("/games");
+var gameRef;
 var player = {};
-var game = {};
+var game = "";
 
 // on user's connection status change
 connectedRef.on("value", function (snapshot) {
@@ -27,23 +28,28 @@ connectedRef.on("value", function (snapshot) {
         con.onDisconnect().remove();
 
         gamesRef.once("value").then(function (snapshot) {
+            var joinedGame = false;
             var games = snapshot.val() || {};
-            console.log(games);
             var gameKeyValues = Object.entries(games);
-            for(var i=0;i<gameKeyValues.length;i++){
+            for (var i = 0; i < gameKeyValues.length; i++) {
                 if (gameKeyValues[i][1].length === 1) {
                     // join existing game
-                    console.log("join");
                     gameKeyValues[i][1].push(player);
                     gamesRef.set(games);
-                    return;
+                    game = gameKeyValues[i][0];
+                    gameRef = database.ref("/games/" + game);
+                    joinedGame = true;
+                    break;
                 }
             }
-            // create a new game
-            var newGame = [];
-            newGame.push(player);
-            game = gamesRef.push(newGame);
-            console.log("create");
+            if (!joinedGame) {
+                // create a new game
+                var newGame = [];
+                newGame.push(player);
+                myGame = gamesRef.push(newGame);
+                game = myGame.key;
+                gameRef = database.ref("/games/" + game);
+            }
         });
     }
 });
