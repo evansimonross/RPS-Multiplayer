@@ -35,6 +35,7 @@ connectedRef.on("value", function (snapshot) {
                     // join existing game
                     gameKeyValues[i][1].players.push(player);
                     gamesRef.set(games);
+                    $('#player-2-name').text(gameKeyValues[i][1].players[0].name);
                     game = gameKeyValues[i][0];
                     gamesRef.onDisconnect().set(snapshot.val());
                     return;
@@ -66,18 +67,21 @@ gamesRef.on("value", function (snapshot) {
     console.log(thisGame);
     if (thisGame.players.length === 1) {
         // Other player has disconnected! 
+        $('#player-2-name').text("Player 2");
         delete games[game];
         gamesRef.onDisconnect().set(games);
     }
     else if (thisGame.players.length === 2) {
+        // Other player has joined.
         if(thisGame.players[0].id===player.id){
+            $('#player-2-name').text(thisGame.players[1].name);
             games[game].players = ([thisGame.players[1]]);
             gamesRef.onDisconnect().set(games);
         }
         else{
+            $('#player-2-name').text(thisGame.players[0].name);
             games[game].players = ([thisGame.players[0]]);
             gamesRef.onDisconnect().set(games);
         }
     }
-    // Set new onDisconnect listeners !! 
 });
