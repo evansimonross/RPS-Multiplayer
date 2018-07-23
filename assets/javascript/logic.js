@@ -29,7 +29,7 @@ connectedRef.on("value", function (snapshot) {
         $('#player-1-name').text(player.name);
         con.onDisconnect().remove();
         var me = gamesRef.child(game).child(player.id);
-        me.update({ name: player.name, waiting: false, newGame: "lobby"});
+        me.update({ name: player.name, waiting: false, newGame: "lobby" });
         me.onDisconnect().remove();
     }
 });
@@ -40,16 +40,17 @@ gamesRef.on("value", function (snapshot) {
     // If the player is currently in the lobby, check to see if there is a game partner
     if (game === "lobby") {
         var me = players[player.id] || "";
-        if(me === ""){ return; }
+        if (me === "") { return; }
 
         // Another player has created a game for you. Move from the lobby to that game channel
-        if( me.newGame !== "lobby"){
+        if (me.newGame !== "lobby") {
             game = me.newGame;
             gamesRef.child("lobby").child(player.id).remove();
             var meInGame = gamesRef.child(game).child("players").child(player.id);
             meInGame.onDisconnect().remove();
-            gameStarted = true;
-            commenceGame();
+            if (!gameStarted) {
+                commenceGame();
+            }
             return;
         }
 
@@ -57,12 +58,12 @@ gamesRef.on("value", function (snapshot) {
         playerIds = Object.keys(players);
         for (var i = 0; i < playerIds.length; i++) {
             if (playerIds[i] != player.id) {
-                if(players[playerIds[i]].waiting===true){
+                if (players[playerIds[i]].waiting === true) {
                     gamesRef.child("lobby").child(player.id).remove();
                     var newGamePlayers = {};
-                    newGamePlayers[player.id] = {name: player.name};
-                    newGamePlayers[playerIds[i]] = {name: players[playerIds[i]].name};
-                    var newGame = gamesRef.push({players: newGamePlayers});
+                    newGamePlayers[player.id] = { name: player.name };
+                    newGamePlayers[playerIds[i]] = { name: players[playerIds[i]].name };
+                    var newGame = gamesRef.push({ players: newGamePlayers });
                     game = newGame.key;
                     gamesRef.child("lobby").child(playerIds[i]).update({
                         waiting: false,
@@ -80,19 +81,18 @@ gamesRef.on("value", function (snapshot) {
     }
 
     // If your game has already started but your game room only has one player, they must have disconnected. Return to the lobby.
-    else if(Object.keys(players['players']).length===1 && gameStarted) {
+    else if (Object.keys(players['players']).length === 1 && gameStarted) {
         // return to lobby
         gameStarted = false;
         gamesRef.child(game).remove();
         game = "lobby";
         var me = gamesRef.child(game).child(player.id);
-        me.update({ name: player.name, waiting: false, newGame: "lobby"});
+        me.update({ name: player.name, waiting: false, newGame: "lobby" });
         me.onDisconnect().remove();
     }
 
     // If your game hasn't started yet and your game room has two players, it should begin.
-    else if(Object.keys(players['players']).length===2 && !gameStarted){
-        gameStarted = true;
+    else if (Object.keys(players['players']).length === 2 && !gameStarted) {
         commenceGame();
     }
 
@@ -103,16 +103,22 @@ connectionsRef.on("value", function (snapshot) {
     $('#player-count').text(snapshot.numChildren());
 });
 
-function commenceGame(){
+function commenceGame() {
+    gameStarted = true;
     var opponentId = "";
-    gamesRef.once("value", function(snapshot){
+    gamesRef.once("value", function (snapshot) {
         var ids = Object.keys(snapshot.val()[game].players);
-        if(ids[0]===player.id){
+        if (ids[0] === player.id) {
             opponentId = ids[1];
         }
-        else{
+        else {
             opponentId = ids[0];
         }
         $('#player-2-name').text(snapshot.val()[game].players[opponentId].name);
+    }).then(function () {
+        var gameRef = database.ref("/games/" + game);
+        gameRef.on("value", function (snapshot) {
+            console.log("CHANGE");
+        });
     });
 }
