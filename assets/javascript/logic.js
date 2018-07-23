@@ -121,6 +121,27 @@ function commenceGame() {
             console.log("CHANGE");
             $('#player-1-score').text(snapshot.val().players[player.id].points);
             $('#player-2-score').text(snapshot.val().players[opponentId].points);
+
+            if (snapshot.val().players[player.id].move === "x" && snapshot.val().players[opponentId].move === "x") {
+                // Prompt player for RPS. 
+                showMoves();
+                // Show opponent as not ready.
+                showOpponentDown();
+            }
+            else if (snapshot.val().players[player.id].move === "x") {
+                // Prompt player for RPS
+                showMoves();
+                // Show opponent as ready.
+                showOpponentUp();
+            }
+            else if (snapshot.val().players[opponentId].move === "x") {
+                // Show opponent as not ready
+                showOpponentDown();
+            }
+            else {
+                // Check who is the winner
+                showOpponentMove(snapshot.val().players[opponentId].move);
+            }
         });
     });
 }
@@ -128,10 +149,39 @@ function commenceGame() {
 function scoreUp() {
     var me = gamesRef.child(game).child("players").child(player.id);
     var score = 0;
-    me.once("value", function(snapshot){
-        console.log(snapshot.val());
+    me.once("value", function (snapshot) {
         score = snapshot.val()["points"] + 1;
-    }).then(function (){
-        me.update({ points: score});
+    }).then(function () {
+        me.update({ points: score });
     });
+}
+
+function showMoves() {
+    $('#player-moves').empty();
+    $('#player-moves').append('<button class="btn btn-lg btn-primary move" onclick="makeMove(\'rock\')">Rock <i class="fas fa-hand-rock"></i></button>');
+    $('#player-moves').append('<button class="btn btn-lg btn-primary move" onclick="makeMove(\'paper\')">Paper <i class="fas fa-hand-paper"></i></button>');
+    $('#player-moves').append('<button class="btn btn-lg btn-primary move" onclick="makeMove(\'scissors\')">Scissors <i class="fas fa-hand-scissors"></i></button>');
+}
+
+function showOpponentDown() {
+    $('#opponent-moves').empty();
+    $('#opponent-moves').append('<h1><i id="opponent-move" class="fas fa-thumbs-down"></i></h1>')
+}
+
+function showOpponentUp() {
+    $('#opponent-moves').empty();
+    $('#opponent-moves').append('<h1><i id="opponent-move" class="fas fa-thumbs-up"></i></h1>')
+}
+
+function showOpponentMove(move) {
+    $('#opponent-moves').empty();
+    $('#opponent-moves').append('<h1><i id="opponent-move" class="fas fa-hand-' + move + '"></i></h1>')
+}
+
+function makeMove(move) {
+    $('#' + move + '-title').css('color', 'var(--player-1-color)');
+    var me = gamesRef.child(game).child("players").child(player.id);
+    me.update({ move: move });
+    $('#player-moves').empty();
+    $('#player-moves').append('<h1><i id="my-move" class="fas fa-hand-' + move + '"></i></h1>')
 }

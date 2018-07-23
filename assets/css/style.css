@@ -49,6 +49,23 @@ h4{
     margin-right: auto;
 }
 
+.move{
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    margin-bottom: 20px
+}
+
+#my-move{
+    color: var(--player-1-color);
+    font-size: 4em;
+}
+
+#opponent-move{
+    color: var(--player-2-color);
+    font-size: 4em;
+}
+
 @media screen and (max-width: 1200px){
     h1{
         font-size: 3em;
