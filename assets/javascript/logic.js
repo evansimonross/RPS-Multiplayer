@@ -36,17 +36,24 @@ connectedRef.on("value", function (snapshot) {
 
 gamesRef.on("value", function (snapshot) {
     var players = snapshot.val()[game];
+
+    // If the player is currently in the lobby, check to see if there is a game partner
     if (game === "lobby") {
         var me = players[player.id] || "";
         if(me === ""){ return; }
+
+        // Another player has created a game for you. Move from the lobby to that game channel
         if( me.newGame !== "lobby"){
             game = me.newGame;
             gamesRef.child("lobby").child(player.id).remove();
             var meInGame = gamesRef.child(game).child("players").child(player.id);
             meInGame.onDisconnect().remove();
             gameStarted = true;
+            commenceGame();
             return;
         }
+
+        // Check to see if any other players are waiting
         playerIds = Object.keys(players);
         for (var i = 0; i < playerIds.length; i++) {
             if (playerIds[i] != player.id) {
@@ -67,8 +74,12 @@ gamesRef.on("value", function (snapshot) {
                 }
             }
         }
+
+        // If no one is waiting and you have not been called to another channel, now you are waiting
         gamesRef.child(game).child(player.id).update({ waiting: true });
     }
+
+    // If your game has already started but your game room only has one player, they must have disconnected. Return to the lobby.
     else if(Object.keys(players['players']).length===1 && gameStarted) {
         // return to lobby
         gameStarted = false;
@@ -78,8 +89,11 @@ gamesRef.on("value", function (snapshot) {
         me.update({ name: player.name, waiting: false, newGame: "lobby"});
         me.onDisconnect().remove();
     }
+
+    // If your game hasn't started yet and your game room has two players, it should begin.
     else if(Object.keys(players['players']).length===2 && !gameStarted){
         gameStarted = true;
+        commenceGame();
     }
 
 });
@@ -88,3 +102,17 @@ gamesRef.on("value", function (snapshot) {
 connectionsRef.on("value", function (snapshot) {
     $('#player-count').text(snapshot.numChildren());
 });
+
+function commenceGame(){
+    var opponentId = "";
+    gamesRef.once("value", function(snapshot){
+        var ids = Object.keys(snapshot.val()[game].players);
+        if(ids[0]===player.id){
+            opponentId = ids[1];
+        }
+        else{
+            opponentId = ids[0];
+        }
+        $('#player-2-name').text(snapshot.val()[game].players[opponentId].name);
+    });
+}
