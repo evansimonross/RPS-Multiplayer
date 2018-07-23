@@ -173,13 +173,13 @@ function waitingForOpponent(){
 function showOpponentDown() {
     $('#opponent-moves').empty();
     $('#opponent-moves').append('<h1><i id="opponent-move" class="fas fa-thumbs-down"></i></h1>')
-    $('#opponent-moves').append('<p>Your opponent has not yet chosen.</p>');
+    $('#opponent-moves').append('<p>Your opponent has not chosen.</p>');
 }
 
 function showOpponentUp() {
     $('#opponent-moves').empty();
     $('#opponent-moves').append('<h1><i id="opponent-move" class="fas fa-thumbs-up"></i></h1>')
-    $('#opponent-moves').append('<p>Your opponent has already yet chosen.</p>');
+    $('#opponent-moves').append('<p>Your opponent has already chosen.</p>');
 }
 
 function showOpponentMove(move) {

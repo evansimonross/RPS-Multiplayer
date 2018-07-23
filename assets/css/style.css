@@ -39,6 +39,10 @@ p{
     margin: 25px;
 }
 
+.player-box{
+    height: 400px;
+}
+
 #player-1-box{
     border-color: var(--player-1-color);
 }
@@ -49,6 +53,7 @@ p{
 
 #chat{
     width: 50%;
+    height: 200px;
     display: block;
     margin-left: auto;
     margin-right: auto;
@@ -58,6 +63,7 @@ p{
     display: block;
     margin-left: auto;
     margin-right: auto;
+    margin-top: 50px;
     margin-bottom: 20px
 }
 
@@ -81,6 +87,15 @@ p{
     h3{
         font-size: 1.5em;
     }
+    .move{
+        margin-top: 30px;
+    }
+    .player-box{
+        height: 350px;
+    }
+    #chat{
+        width: 70%;
+    }
 }
 
 @media screen and (max-width: 992px){
@@ -89,5 +104,21 @@ p{
     }
     h2{
         font-size: 2em;
+    }
+    .move{
+        margin-top: 10px;
+    }
+    .player-box{
+        height: 300px;
+    }
+    #chat{
+        width: 90%;
+    }
+    #my-move{
+        font-size: 3em;
+    }
+
+    #opponent-move{
+        font-size: 3em;
     }
 }
