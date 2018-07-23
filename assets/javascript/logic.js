@@ -61,8 +61,8 @@ gamesRef.on("value", function (snapshot) {
                 if (players[playerIds[i]].waiting === true) {
                     gamesRef.child("lobby").child(player.id).remove();
                     var newGamePlayers = {};
-                    newGamePlayers[player.id] = { name: player.name };
-                    newGamePlayers[playerIds[i]] = { name: players[playerIds[i]].name };
+                    newGamePlayers[player.id] = { name: player.name, points: 0, move: "x" };
+                    newGamePlayers[playerIds[i]] = { name: players[playerIds[i]].name, points: 0, move: "x" };
                     var newGame = gamesRef.push({ players: newGamePlayers });
                     game = newGame.key;
                     gamesRef.child("lobby").child(playerIds[i]).update({
@@ -119,6 +119,8 @@ function commenceGame() {
         var gameRef = database.ref("/games/" + game);
         gameRef.on("value", function (snapshot) {
             console.log("CHANGE");
+            $('#player-1-score').text(snapshot.val().players[player.id].points);
+            $('#player-2-score').text(snapshot.val().players[opponentId].points);
         });
     });
 }
