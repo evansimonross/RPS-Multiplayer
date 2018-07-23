@@ -75,7 +75,7 @@ gamesRef.on("value", function (snapshot) {
         gamesRef.child(game).remove();
         game = "lobby";
         var me = gamesRef.child(game).child(player.id);
-        me.update({ name: player.name, waiting: true, newGame: "lobby"});
+        me.update({ name: player.name, waiting: false, newGame: "lobby"});
         me.onDisconnect().remove();
     }
     else if(Object.keys(players['players']).length===2 && !gameStarted){
