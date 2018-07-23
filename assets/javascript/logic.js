@@ -124,3 +124,14 @@ function commenceGame() {
         });
     });
 }
+
+function scoreUp() {
+    var me = gamesRef.child(game).child("players").child(player.id);
+    var score = 0;
+    me.once("value", function(snapshot){
+        console.log(snapshot.val());
+        score = snapshot.val()["points"] + 1;
+    }).then(function (){
+        me.update({ points: score});
+    });
+}
