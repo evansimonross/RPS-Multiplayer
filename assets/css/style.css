@@ -29,6 +29,11 @@ h4{
     margin: 10px;
 }
 
+p{
+    font-size: 1.5em;
+    text-align: center;
+}
+
 .box{
     border: solid 3px;
     margin: 25px;

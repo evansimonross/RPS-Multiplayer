@@ -78,6 +78,7 @@ gamesRef.on("value", function (snapshot) {
 
         // If no one is waiting and you have not been called to another channel, now you are waiting
         gamesRef.child(game).child(player.id).update({ waiting: true });
+        waitingForOpponent();
     }
 
     // If your game has already started but your game room only has one player, they must have disconnected. Return to the lobby.
@@ -163,19 +164,28 @@ function showMoves() {
     $('#player-moves').append('<button class="btn btn-lg btn-primary move" onclick="makeMove(\'scissors\')">Scissors <i class="fas fa-hand-scissors"></i></button>');
 }
 
+function waitingForOpponent(){
+    $('#opponent-moves').empty();
+    $('#opponent-moves').append('<h1><i id="opponent-move" class="far fa-clock"></i></h1>')
+    $('#opponent-moves').append('<p>Waiting for an opponent.</p>');
+}
+
 function showOpponentDown() {
     $('#opponent-moves').empty();
     $('#opponent-moves').append('<h1><i id="opponent-move" class="fas fa-thumbs-down"></i></h1>')
+    $('#opponent-moves').append('<p>Your opponent has not yet chosen.</p>');
 }
 
 function showOpponentUp() {
     $('#opponent-moves').empty();
     $('#opponent-moves').append('<h1><i id="opponent-move" class="fas fa-thumbs-up"></i></h1>')
+    $('#opponent-moves').append('<p>Your opponent has already yet chosen.</p>');
 }
 
 function showOpponentMove(move) {
     $('#opponent-moves').empty();
     $('#opponent-moves').append('<h1><i id="opponent-move" class="fas fa-hand-' + move + '"></i></h1>')
+    $('#opponent-moves').append('<p>Your opponent has chosen ' + move + '.</p>');
 }
 
 function makeMove(move) {
@@ -183,5 +193,6 @@ function makeMove(move) {
     var me = gamesRef.child(game).child("players").child(player.id);
     me.update({ move: move });
     $('#player-moves').empty();
-    $('#player-moves').append('<h1><i id="my-move" class="fas fa-hand-' + move + '"></i></h1>')
+    $('#player-moves').append('<h1><i id="my-move" class="fas fa-hand-' + move + ' fa-flip-horizontal"></i></h1>')
+    $('#player-moves').append('<p>You have chosen ' + move + '.</p>');
 }
