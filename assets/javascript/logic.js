@@ -28,6 +28,10 @@ connectedRef.on("value", function (snapshot) {
         var con = connectionsRef.push(true);
         player.id = con.key;
         player.name = prompt("What is your name?");
+        if (player.name === null || player.name === ""){
+            var randomNames = ["Abagill", "Bobbert", "Charrie", "Dagmund", "Eggward", "Francille", "Gertle", "Haverstraw", "Irvind", "Jacqueler", "Khloe Kardashian", "Lemonjelo", "Mennis", "Nedelrad", "Ophelie", "Pert", "Quincely", "Rennifer", "Samanda", "Thimoty", "Usanna", "Vixtoria", "Wembly", "Xavidar", "Yanny", "Zelma"];
+            player.name = randomNames[Math.floor(Math.random()*randomNames.length)];
+        }
         player.move = "x";
         $('#player-1-name').text(player.name);
         con.onDisconnect().remove();
@@ -64,8 +68,8 @@ gamesRef.on("value", function (snapshot) {
                 if (players[playerIds[i]].waiting === true) {
                     gamesRef.child("lobby").child(player.id).remove();
                     var newGamePlayers = {};
-                    newGamePlayers[player.id] = { name: player.name, points: 0, move: "x" };
-                    newGamePlayers[playerIds[i]] = { name: players[playerIds[i]].name, points: 0, move: "x" };
+                    newGamePlayers[player.id] = { name: player.name, points: 0, move: "x", message: "" };
+                    newGamePlayers[playerIds[i]] = { name: players[playerIds[i]].name, points: 0, move: "x", message: "" };
                     var newGame = gamesRef.push({ players: newGamePlayers });
                     game = newGame.key;
                     gamesRef.child("lobby").child(playerIds[i]).update({
@@ -111,6 +115,7 @@ connectionsRef.on("value", function (snapshot) {
 
 function commenceGame() {
     gameStarted = true;
+    $('#chat-box').empty();
     var opponentId = "";
     gamesRef.once("value", function (snapshot) {
         var ids = Object.keys(snapshot.val()[game].players);
@@ -131,6 +136,12 @@ function commenceGame() {
         moveRef.on("value", function (snapshot) {
             oppMove = snapshot.val();
             checkMoves();
+        });
+
+        var messageRef = database.ref("/games/" + game + "/players/" + opponentId + "/message");
+        messageRef.on("value", function (snapshot){
+            if(snapshot.val()==="" || snapshot.val()===null){ return; }
+            $('#chat-box').prepend('<p class="chat-line"><b style="color: var(--player-2-color)">' + $('#player-2-name').text() + ':</b> ' + snapshot.val() + '</p>');
         });
     });
 }
@@ -284,3 +295,13 @@ function makeMove(move) {
     $('#player-moves').append('<p>You have chosen ' + move + '.</p>');
     checkMoves();
 }
+
+$('#chat-button').on('click',function(event){
+    event.preventDefault();
+    var message = $('#chat-text').val();
+    $('#chat-text').val("");
+    if(message===""){ return; }
+    $('#chat-box').prepend('<p class="chat-line"><b style="color: var(--player-1-color)">' + player.name + ':</b> ' + message + '</p>');
+    var me = gamesRef.child(game).child("players").child(player.id);
+    me.update({ message: message });
+});

@@ -34,6 +34,12 @@ p{
     text-align: center;
 }
 
+.chat-line{
+    font-size: 1em;
+    text-align: left;
+    margin-bottom: 0px;
+}
+
 .box{
     border: solid 3px;
     margin: 25px;
@@ -57,6 +63,7 @@ p{
     display: block;
     margin-left: auto;
     margin-right: auto;
+    padding: 5px;
 }
 
 .move{
@@ -65,6 +72,22 @@ p{
     margin-right: auto;
     margin-top: 50px;
     margin-bottom: 20px
+}
+
+#chat-box{
+    height: calc(100% - 35px);
+    overflow: auto;
+    display: flex;
+    flex-direction: column-reverse;
+}
+
+#chat-text{
+    width: calc(100% - 75px);
+    margin-top: 5px;
+}
+
+#chat-button{
+    margin-bottom: 4px;
 }
 
 #my-move{
