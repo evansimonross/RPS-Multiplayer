@@ -39,6 +39,8 @@ connectedRef.on("value", function (snapshot) {
         me.update({ name: player.name, waiting: false, newGame: "lobby" });
         me.onDisconnect().remove();
     }
+}, function (errorObject){
+    console.log("An error occured on the connected reference: " + errorObject.code);
 });
 
 gamesRef.on("value", function (snapshot) {
@@ -106,11 +108,15 @@ gamesRef.on("value", function (snapshot) {
         commenceGame();
     }
 
+}, function (errorObject){
+    console.log("An error occured on the games reference: " + errorObject.code);
 });
 
 // on any connection status change
 connectionsRef.on("value", function (snapshot) {
     $('#player-count').text(snapshot.numChildren());
+}, function (errorObject){
+    console.log("An error occured on the connections reference: " + errorObject.code);
 });
 
 function commenceGame() {
@@ -126,22 +132,30 @@ function commenceGame() {
             opponentId = ids[0];
         }
         $('#player-2-name').text(snapshot.val()[game].players[opponentId].name);
+    }, function (errorObject){
+        console.log("An error occured on the gamesRef reference: " + errorObject.code);
     }).then(function () {
         var pointsRef = database.ref("/games/" + game + "/players/" + opponentId + "/points");
         pointsRef.on("value", function (snapshot) {
             $('#player-2-score').text(snapshot.val());
+        }, function (errorObject){
+            console.log("An error occured on the opponent's points reference: " + errorObject.code);
         });
 
         var moveRef = database.ref("/games/" + game + "/players/" + opponentId + "/move");
         moveRef.on("value", function (snapshot) {
             oppMove = snapshot.val();
             checkMoves();
+        }, function (errorObject){
+            console.log("An error occured on the opponent's move reference: " + errorObject.code);
         });
 
         var messageRef = database.ref("/games/" + game + "/players/" + opponentId + "/message");
         messageRef.on("value", function (snapshot){
             if(snapshot.val()==="" || snapshot.val()===null){ return; }
             $('#chat-box').prepend('<p class="chat-line"><b style="color: var(--player-2-color)">' + $('#player-2-name').text() + ':</b> ' + snapshot.val() + '</p>');
+        }, function (errorObject){
+            console.log("An error occured on the opponent's message reference: " + errorObject.code);
         });
     });
 }
