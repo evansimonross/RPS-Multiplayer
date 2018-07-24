@@ -91,6 +91,8 @@ gamesRef.on("value", function (snapshot) {
         gamesRef.child(game).remove();
         game = "lobby";
         var me = gamesRef.child(game).child(player.id);
+        $('#player-2-name').text("Player 2");
+        scoreReset();
         me.update({ name: player.name, waiting: false, newGame: "lobby" });
         me.onDisconnect().remove();
     }
@@ -134,7 +136,7 @@ function commenceGame() {
 }
 
 function nextGame() {
-    $('.title').css('color','black');
+    $('.title').css('color', 'black');
     var me = gamesRef.child(game).child("players").child(player.id);
     me.update({ move: "x" });
     player.move = "x";
@@ -233,6 +235,11 @@ function scoreUp() {
     currentScore++;
     $('#player-1-score').text(currentScore);
     me.update({ points: currentScore });
+}
+
+function scoreReset() {
+    currentScore = 0;
+    $('#player-1-score').text(currentScore);
 }
 
 function showMoves() {
