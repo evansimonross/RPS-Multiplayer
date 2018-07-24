@@ -20,6 +20,7 @@ var game = "lobby";
 var gamesRef = database.ref("/games");
 var gameStarted = false;
 var currentScore = 0;
+var oppMove;
 
 // on user's connection status change
 connectedRef.on("value", function (snapshot) {
@@ -27,6 +28,7 @@ connectedRef.on("value", function (snapshot) {
         var con = connectionsRef.push(true);
         player.id = con.key;
         player.name = prompt("What is your name?");
+        player.move = "x";
         $('#player-1-name').text(player.name);
         con.onDisconnect().remove();
         var me = gamesRef.child(game).child(player.id);
@@ -118,77 +120,15 @@ function commenceGame() {
         }
         $('#player-2-name').text(snapshot.val()[game].players[opponentId].name);
     }).then(function () {
-        var gameRef = database.ref("/games/" + game);
-        gameRef.on("value", function (snapshot) {
-            console.log("CHANGE");
-            $('#player-1-score').text(snapshot.val().players[player.id].points);
-            $('#player-2-score').text(snapshot.val().players[opponentId].points);
+        var pointsRef = database.ref("/games/" + game + "/players/" + opponentId + "/points");
+        pointsRef.on("value", function (snapshot) {
+            $('#player-2-score').text(snapshot.val());
+        });
 
-            var myMove = snapshot.val().players[player.id].move;
-            var oppMove = snapshot.val().players[opponentId].move;
-
-            if (myMove === "x" && oppMove === "x") {
-                // Prompt player for RPS. 
-                showMoves();
-                // Show opponent as not ready.
-                showOpponentDown();
-            }
-            else if (myMove === "x") {
-                // Prompt player for RPS
-                showMoves();
-                // Show opponent as ready.
-                showOpponentUp();
-            }
-            else if (oppMove === "x") {
-                // Show opponent as not ready
-                showOpponentDown();
-            }
-            else {
-                // Check who is the winner
-                gameStarted = false;
-                showOpponentMove(oppMove);
-                if (myMove === "rock") {
-                    if (oppMove === "rock") {
-                        draw();
-                    }
-                    else if (oppMove === "paper") {
-                        lose();
-                    }
-                    else if (oppMove === "scissors") {
-                        win();
-                    }
-                    else {
-                    }
-                }
-                else if (myMove === "paper") {
-                    if (oppMove === "rock") {
-                        win();
-                    }
-                    else if (oppMove === "paper") {
-                        draw();
-                    }
-                    else if (oppMove === "scissors") {
-                        lose();
-                    }
-                    else {
-                    }
-                }
-                else if (myMove === "scissors") {
-                    if (oppMove === "rock") {
-                        lose();
-                    }
-                    else if (oppMove === "paper") {
-                        win();
-                    }
-                    else if (oppMove === "scissors") {
-                        draw();
-                    }
-                    else {
-                    }
-                }
-                else {
-                }
-            }
+        var moveRef = database.ref("/games/" + game + "/players/" + opponentId + "/move");
+        moveRef.on("value", function (snapshot) {
+            oppMove = snapshot.val();
+            checkMoves();
         });
     });
 }
@@ -196,6 +136,71 @@ function commenceGame() {
 function nextGame() {
     var me = gamesRef.child(game).child("players").child(player.id);
     me.update({ move: "x" });
+}
+
+function checkMoves() {
+    if (player.move === "x" && oppMove === "x") {
+        // Prompt player for RPS. 
+        showMoves();
+        // Show opponent as not ready.
+        showOpponentDown();
+    }
+    else if (player.move === "x") {
+        // Prompt player for RPS
+        showMoves();
+        // Show opponent as ready.
+        showOpponentUp();
+    }
+    else if (oppMove === "x") {
+        // Show opponent as not ready
+        showOpponentDown();
+    }
+    else {
+        // Check who is the winner
+        gameStarted = false;
+        showOpponentMove(oppMove);
+        if (player.move === "rock") {
+            if (oppMove === "rock") {
+                draw();
+            }
+            else if (oppMove === "paper") {
+                lose();
+            }
+            else if (oppMove === "scissors") {
+                win();
+            }
+            else {
+            }
+        }
+        else if (player.move === "paper") {
+            if (oppMove === "rock") {
+                win();
+            }
+            else if (oppMove === "paper") {
+                draw();
+            }
+            else if (oppMove === "scissors") {
+                lose();
+            }
+            else {
+            }
+        }
+        else if (player.move === "scissors") {
+            if (oppMove === "rock") {
+                lose();
+            }
+            else if (oppMove === "paper") {
+                win();
+            }
+            else if (oppMove === "scissors") {
+                draw();
+            }
+            else {
+            }
+        }
+        else {
+        }
+    }
 }
 
 function win() {
@@ -223,6 +228,7 @@ function draw() {
 function scoreUp() {
     var me = gamesRef.child(game).child("players").child(player.id);
     currentScore++;
+    $('#player-1-score').text(currentScore);
     me.update({ points: currentScore });
 }
 
@@ -259,9 +265,11 @@ function showOpponentMove(move) {
 
 function makeMove(move) {
     $('#' + move + '-title').css('color', 'var(--player-1-color)');
+    player.move = move;
     var me = gamesRef.child(game).child("players").child(player.id);
     me.update({ move: move });
     $('#player-moves').empty();
     $('#player-moves').append('<h1><i id="my-move" class="fas fa-hand-' + move + ' fa-flip-horizontal"></i></h1>')
     $('#player-moves').append('<p>You have chosen ' + move + '.</p>');
+    checkMoves();
 }
