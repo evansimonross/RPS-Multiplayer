@@ -7,6 +7,7 @@ var config = {
     storageBucket: "rps-multiplayer-4294a.appspot.com",
     messagingSenderId: "618197940732"
 };
+const delay = 3500;
 
 // create database references
 firebase.initializeApp(config);
@@ -28,9 +29,9 @@ connectedRef.on("value", function (snapshot) {
         var con = connectionsRef.push(true);
         player.id = con.key;
         player.name = prompt("What is your name?");
-        if (player.name === null || player.name === ""){
+        if (player.name === null || player.name === "") {
             var randomNames = ["Abagill", "Bobbert", "Charrie", "Dagmund", "Eggward", "Francille", "Gertle", "Haverstraw", "Irvind", "Jacqueler", "Khloe Kardashian", "Lemonjelo", "Mennis", "Nedelrad", "Ophelie", "Pert", "Quincely", "Rennifer", "Samanda", "Thimoty", "Usanna", "Vixtoria", "Wembly", "Xavidar", "Yanny", "Zelma"];
-            player.name = randomNames[Math.floor(Math.random()*randomNames.length)];
+            player.name = randomNames[Math.floor(Math.random() * randomNames.length)];
         }
         player.move = "x";
         $('#player-1-name').text(player.name);
@@ -39,7 +40,7 @@ connectedRef.on("value", function (snapshot) {
         me.update({ name: player.name, waiting: false, newGame: "lobby" });
         me.onDisconnect().remove();
     }
-}, function (errorObject){
+}, function (errorObject) {
     console.log("An error occured on the connected reference: " + errorObject.code);
 });
 
@@ -108,14 +109,14 @@ gamesRef.on("value", function (snapshot) {
         commenceGame();
     }
 
-}, function (errorObject){
+}, function (errorObject) {
     console.log("An error occured on the games reference: " + errorObject.code);
 });
 
 // on any connection status change
 connectionsRef.on("value", function (snapshot) {
     $('#player-count').text(snapshot.numChildren());
-}, function (errorObject){
+}, function (errorObject) {
     console.log("An error occured on the connections reference: " + errorObject.code);
 });
 
@@ -132,13 +133,13 @@ function commenceGame() {
             opponentId = ids[0];
         }
         $('#player-2-name').text(snapshot.val()[game].players[opponentId].name);
-    }, function (errorObject){
+    }, function (errorObject) {
         console.log("An error occured on the gamesRef reference: " + errorObject.code);
     }).then(function () {
         var pointsRef = database.ref("/games/" + game + "/players/" + opponentId + "/points");
         pointsRef.on("value", function (snapshot) {
             $('#player-2-score').text(snapshot.val());
-        }, function (errorObject){
+        }, function (errorObject) {
             console.log("An error occured on the opponent's points reference: " + errorObject.code);
         });
 
@@ -146,15 +147,15 @@ function commenceGame() {
         moveRef.on("value", function (snapshot) {
             oppMove = snapshot.val();
             checkMoves();
-        }, function (errorObject){
+        }, function (errorObject) {
             console.log("An error occured on the opponent's move reference: " + errorObject.code);
         });
 
         var messageRef = database.ref("/games/" + game + "/players/" + opponentId + "/message");
-        messageRef.on("value", function (snapshot){
-            if(snapshot.val()==="" || snapshot.val()===null){ return; }
+        messageRef.on("value", function (snapshot) {
+            if (snapshot.val() === "" || snapshot.val() === null) { return; }
             $('#chat-box').prepend('<p class="chat-line"><b style="color: var(--player-2-color)">' + $('#player-2-name').text() + ':</b> ' + snapshot.val() + '</p>');
-        }, function (errorObject){
+        }, function (errorObject) {
             console.log("An error occured on the opponent's message reference: " + errorObject.code);
         });
     });
@@ -238,21 +239,21 @@ function win() {
     gameStarted = true;
     scoreUp();
     console.log("win");
-    setTimeout(nextGame, 3000);
+    setTimeout(nextGame, delay);
 }
 
 function lose() {
     if (gameStarted) { return; }
     gameStarted = true;
     console.log("lose");
-    setTimeout(nextGame, 3000);
+    setTimeout(nextGame, delay);
 }
 
 function draw() {
     if (gameStarted) { return; }
     gameStarted = true;
     console.log("draw");
-    setTimeout(nextGame, 3000);
+    setTimeout(nextGame, delay);
 }
 
 function scoreUp() {
@@ -310,11 +311,11 @@ function makeMove(move) {
     checkMoves();
 }
 
-$('#chat-button').on('click',function(event){
+$('#chat-button').on('click', function (event) {
     event.preventDefault();
     var message = $('#chat-text').val();
     $('#chat-text').val("");
-    if(message===""){ return; }
+    if (message === "") { return; }
     $('#chat-box').prepend('<p class="chat-line"><b style="color: var(--player-1-color)">' + player.name + ':</b> ' + message + '</p>');
     var me = gamesRef.child(game).child("players").child(player.id);
     me.update({ message: message });
