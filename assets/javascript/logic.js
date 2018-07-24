@@ -134,8 +134,11 @@ function commenceGame() {
 }
 
 function nextGame() {
+    $('.title').css('color','black');
     var me = gamesRef.child(game).child("players").child(player.id);
     me.update({ move: "x" });
+    player.move = "x";
+    showMoves();
 }
 
 function checkMoves() {
@@ -261,6 +264,7 @@ function showOpponentMove(move) {
     $('#opponent-moves').empty();
     $('#opponent-moves').append('<h1><i id="opponent-move" class="fas fa-hand-' + move + '"></i></h1>')
     $('#opponent-moves').append('<p>Your opponent has chosen ' + move + '.</p>');
+    $('#' + move + '-title').css('color', 'var(--player-2-color)');
 }
 
 function makeMove(move) {
