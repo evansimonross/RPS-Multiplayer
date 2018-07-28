@@ -14,7 +14,6 @@ firebase.initializeApp(config);
 var database = firebase.database();
 var connectionsRef = database.ref("/connections");
 var connectedRef = database.ref(".info/connected");
-//var gamesRef = database.ref("/games");
 var player = {};
 var opponent = {};
 var game = "lobby";
@@ -30,7 +29,7 @@ connectedRef.on("value", function (snapshot) {
         player.id = con.key;
         player.name = prompt("What is your name?");
         if (player.name === null || player.name === "") {
-            var randomNames = ["Abagill", "Bobbert", "Charrie", "Dagmund", "Eggward", "Francille", "Gertle", "Haverstraw", "Irvind", "Jacqueler", "Khloe Kardashian", "Lemonjelo", "Mennis", "Nedelrad", "Ophelie", "Pert", "Quincely", "Rennifer", "Samanda", "Thimoty", "Usanna", "Vixtoria", "Wembly", "Xavidar", "Yanny", "Zelma"];
+            var randomNames = ["Abagall", "Bobbert", "Charnie", "Dagmund", "Eggward", "Francille", "Gertle", "Haverstraw", "Irvind", "Jacqueles", "Kimber", "Lemmant", "Mennis", "Nodell", "Ophelie", "Pert", "Quincely", "Rennifer", "Samanda", "Thumbly", "Usanna", "Vixoria", "Wembly", "Xavidar", "Yanny", "Zelma"];
             player.name = randomNames[Math.floor(Math.random() * randomNames.length)];
         }
         player.move = "x";
@@ -61,6 +60,9 @@ gamesRef.on("value", function (snapshot) {
             if (!gameStarted) {
                 commenceGame();
             }
+            var audio = document.getElementById('audio');
+            audio.src = "assets/sounds/dooropen.wav";
+            audio.play();
             return;
         }
 
@@ -100,12 +102,18 @@ gamesRef.on("value", function (snapshot) {
         var me = gamesRef.child(game).child(player.id);
         $('#player-2-name').text("Player 2");
         scoreReset();
+        var audio = document.getElementById('audio');
+        audio.src = "assets/sounds/doorslam.wav";
+        audio.play();
         me.update({ name: player.name, waiting: false, newGame: "lobby" });
         me.onDisconnect().remove();
     }
 
     // If your game hasn't started yet and your game room has two players, it should begin.
     else if (Object.keys(players['players']).length === 2 && !gameStarted) {
+        var audio = document.getElementById('audio');
+        audio.src = "assets/sounds/dooropen.wav";
+        audio.play();
         commenceGame();
     }
 
@@ -155,6 +163,9 @@ function commenceGame() {
         messageRef.on("value", function (snapshot) {
             if (snapshot.val() === "" || snapshot.val() === null) { return; }
             $('#chat-box').prepend('<p class="chat-line"><b style="color: var(--player-2-color)">' + $('#player-2-name').text() + ':</b> ' + snapshot.val() + '</p>');
+            var audio = document.getElementById('audio');
+            audio.src = "assets/sounds/imrcv.wav";
+            audio.play();
         }, function (errorObject) {
             console.log("An error occured on the opponent's message reference: " + errorObject.code);
         });
@@ -166,9 +177,9 @@ function nextGame() {
     $('#message').animate({
         "opacity": '0',
         top: '0%'
-    },function(){
+    }, function () {
         $('#message').css({
-            top:"50%",
+            top: "50%",
             color: "#fff",
             "border-color": "#fff",
         });
@@ -354,5 +365,8 @@ $('#chat-button').on('click', function (event) {
     if (message === "") { return; }
     $('#chat-box').prepend('<p class="chat-line"><b style="color: var(--player-1-color)">' + player.name + ':</b> ' + message + '</p>');
     var me = gamesRef.child(game).child("players").child(player.id);
+    var audio = document.getElementById('audio');
+    audio.src = "assets/sounds/imsend.wav";
+    audio.play();
     me.update({ message: message });
 });
