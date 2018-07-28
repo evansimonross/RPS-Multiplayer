@@ -7,7 +7,7 @@ var config = {
     storageBucket: "rps-multiplayer-4294a.appspot.com",
     messagingSenderId: "618197940732"
 };
-const delay = 3500;
+const delay = 3000;
 
 // create database references
 firebase.initializeApp(config);
@@ -19,6 +19,8 @@ var opponent = {};
 var game = "lobby";
 var gamesRef = database.ref("/games");
 var gameStarted = false;
+var aiGame = false;
+var aiScore = 0;
 var currentScore = 0;
 var oppMove;
 
@@ -91,6 +93,9 @@ gamesRef.on("value", function (snapshot) {
         // If no one is waiting and you have not been called to another channel, now you are waiting
         gamesRef.child(game).child(player.id).update({ waiting: true });
         waitingForOpponent();
+        aiGame = true;
+        scoreReset();
+        showMoves();
     }
 
     // If your game has already started but your game room only has one player, they must have disconnected. Return to the lobby.
@@ -100,13 +105,16 @@ gamesRef.on("value", function (snapshot) {
         gamesRef.child(game).remove();
         game = "lobby";
         var me = gamesRef.child(game).child(player.id);
-        $('#player-2-name').text("Player 2");
+        $('#player-2-name').text("Computer");
         scoreReset();
         var audio = document.getElementById('audio');
         audio.src = "assets/sounds/doorslam.wav";
         audio.play();
         me.update({ name: player.name, waiting: false, newGame: "lobby" });
         me.onDisconnect().remove();
+        aiGame = true;
+        scoreReset();
+        showMoves();
     }
 
     // If your game hasn't started yet and your game room has two players, it should begin.
@@ -114,6 +122,8 @@ gamesRef.on("value", function (snapshot) {
         var audio = document.getElementById('audio');
         audio.src = "assets/sounds/dooropen.wav";
         audio.play();
+        aiGame = false;
+        scoreReset();
         commenceGame();
     }
 
@@ -129,6 +139,7 @@ connectionsRef.on("value", function (snapshot) {
 });
 
 function commenceGame() {
+    if (gameStarted || aiGame) { return; }
     gameStarted = true;
     $('#chat-box').empty();
     var opponentId = "";
@@ -184,8 +195,13 @@ function nextGame() {
             "border-color": "#fff",
         });
     });
-    var me = gamesRef.child(game).child("players").child(player.id);
-    me.update({ move: "x" });
+    if (!aiGame) {
+        var me = gamesRef.child(game).child("players").child(player.id);
+        me.update({ move: "x" });
+    }
+    else{
+        waitingForOpponent();
+    }
     player.move = "x";
     showMoves();
 }
@@ -257,7 +273,12 @@ function checkMoves() {
 
 function win() {
     if (gameStarted) { return; }
-    gameStarted = true;
+    if (aiGame) {
+        gameStarted = false;
+    }
+    else {
+        gameStarted = true;
+    }
     scoreUp();
     $('#message').text("YOU WIN");
     $('#message').css({
@@ -273,7 +294,14 @@ function win() {
 
 function lose() {
     if (gameStarted) { return; }
-    gameStarted = true;
+    if (aiGame) {
+        gameStarted = false;
+        aiScore++;
+        $('#player-2-score').text(aiScore);
+    }
+    else {
+        gameStarted = true;
+    }
     $('#message').text("YOU LOSE");
     $('#message').css({
         "background-color": "var(--player-2-color)",
@@ -288,7 +316,12 @@ function lose() {
 
 function draw() {
     if (gameStarted) { return; }
-    gameStarted = true;
+    if (aiGame) {
+        gameStarted = false;
+    }
+    else {
+        gameStarted = true;
+    }
     $('#message').text("YOU TIED");
     $('#message').css({
         "background-color": "#ddd",
@@ -307,12 +340,15 @@ function scoreUp() {
     var me = gamesRef.child(game).child("players").child(player.id);
     currentScore++;
     $('#player-1-score').text(currentScore);
+    if(aiGame){ return; }
     me.update({ points: currentScore });
 }
 
 function scoreReset() {
     currentScore = 0;
     $('#player-1-score').text(currentScore);
+    aiScore = 0;
+    $('#player-1-score').text(aiScore);
 }
 
 function showMoves() {
@@ -325,7 +361,7 @@ function showMoves() {
 function waitingForOpponent() {
     $('#opponent-moves').empty();
     $('#opponent-moves').append('<h1><i id="opponent-move" class="far fa-clock"></i></h1>')
-    $('#opponent-moves').append('<p>Waiting for an opponent.</p>');
+    $('#opponent-moves').append('<p>Waiting for an opponent. Feel free to play with the computer while you wait.</p>');
 }
 
 function showOpponentDown() {
@@ -349,13 +385,21 @@ function showOpponentMove(move) {
 
 function makeMove(move) {
     $('#' + move + '-title').css('color', 'var(--player-1-color)');
+    var resultDelay = 50;
     player.move = move;
-    var me = gamesRef.child(game).child("players").child(player.id);
-    me.update({ move: move });
+    if (aiGame) {
+        moveOptions = ["rock", "paper", "scissors"];
+        oppMove = moveOptions[Math.floor(Math.random() * 3)];
+        resultDelay = 750;
+    }
+    else {
+        var me = gamesRef.child(game).child("players").child(player.id);
+        me.update({ move: move });
+    }
     $('#player-moves').empty();
     $('#player-moves').append('<h1><i id="my-move" class="fas fa-hand-' + move + ' fa-flip-horizontal"></i></h1>')
     $('#player-moves').append('<p>You have chosen ' + move + '.</p>');
-    checkMoves();
+    setTimeout(checkMoves, resultDelay);
 }
 
 $('#chat-button').on('click', function (event) {
@@ -368,5 +412,14 @@ $('#chat-button').on('click', function (event) {
     var audio = document.getElementById('audio');
     audio.src = "assets/sounds/imsend.wav";
     audio.play();
-    me.update({ message: message });
+    if (aiGame) {
+        setTimeout(function(){
+            $('#chat-box').prepend('<p class="chat-line"><b style="color: var(--player-2-color)"> Computer:</b> I am not a chat bot.</p>');
+            audio.src = "assets/sounds/imrcv.wav";
+            audio.play();
+        },2000);
+    }
+    else {
+        me.update({ message: message });
+    }
 });
