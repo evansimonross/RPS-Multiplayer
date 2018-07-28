@@ -163,6 +163,16 @@ function commenceGame() {
 
 function nextGame() {
     $('.title').css('color', 'black');
+    $('#message').animate({
+        "opacity": '0',
+        top: '0%'
+    },function(){
+        $('#message').css({
+            top:"50%",
+            color: "#fff",
+            "border-color": "#fff",
+        });
+    });
     var me = gamesRef.child(game).child("players").child(player.id);
     me.update({ move: "x" });
     player.move = "x";
@@ -238,21 +248,47 @@ function win() {
     if (gameStarted) { return; }
     gameStarted = true;
     scoreUp();
-    console.log("win");
+    $('#message').text("YOU WIN");
+    $('#message').css({
+        "background-color": "var(--player-1-color)",
+        display: "block"
+    });
+    $('#message').animate({
+        "opacity": '1.0',
+        top: '25%'
+    });
     setTimeout(nextGame, delay);
 }
 
 function lose() {
     if (gameStarted) { return; }
     gameStarted = true;
-    console.log("lose");
+    $('#message').text("YOU LOSE");
+    $('#message').css({
+        "background-color": "var(--player-2-color)",
+        display: "block"
+    });
+    $('#message').animate({
+        "opacity": '1.0',
+        top: '25%'
+    });
     setTimeout(nextGame, delay);
 }
 
 function draw() {
     if (gameStarted) { return; }
     gameStarted = true;
-    console.log("draw");
+    $('#message').text("YOU TIED");
+    $('#message').css({
+        "background-color": "#ddd",
+        color: "#000",
+        "border-color": "#000",
+        display: "block"
+    });
+    $('#message').animate({
+        "opacity": '1.0',
+        top: '25%'
+    });
     setTimeout(nextGame, delay);
 }
 

@@ -5,6 +5,7 @@
 
 body{
     font-family: 'Kanit', sans-serif;
+    background-color: #ddd;
 }
 
 h1{
@@ -43,6 +44,7 @@ p{
 .box{
     border: solid 3px;
     margin: 25px;
+    background-color: #fff;
 }
 
 .player-box{
@@ -100,6 +102,27 @@ p{
     font-size: 4em;
 }
 
+#header-container{
+    position: relative;
+}
+
+#message{
+    position: absolute;
+    font-size: 8em;
+    width: 25%;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, 52%);
+    text-align: center;
+    z-index: 1;
+    color: #fff;
+    background-color: var(--player-2-color);
+    border: solid 3px #fff;
+    padding: 15px;
+    opacity: 0;
+    display: none;
+}
+
 @media screen and (max-width: 1200px){
     h1{
         font-size: 3em;
@@ -118,6 +141,10 @@ p{
     }
     #chat{
         width: 70%;
+    }
+    #message{
+        font-size: 7em;
+        width: 35%;
     }
 }
 
@@ -140,8 +167,11 @@ p{
     #my-move{
         font-size: 3em;
     }
-
     #opponent-move{
         font-size: 3em;
+    }
+    #message{
+        font-size: 6em;
+        width: 45%;
     }
 }
