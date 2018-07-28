@@ -20,7 +20,9 @@ var game = "lobby";
 var gamesRef = database.ref("/games");
 var gameStarted = false;
 var aiGame = false;
+var aiMode = "random";
 var aiScore = 0;
+var playerMoveList = [];
 var currentScore = 0;
 var oppMove;
 
@@ -349,6 +351,7 @@ function scoreReset() {
     $('#player-1-score').text(currentScore);
     aiScore = 0;
     $('#player-1-score').text(aiScore);
+    aiMode = "random";
 }
 
 function showMoves() {
@@ -389,7 +392,71 @@ function makeMove(move) {
     player.move = move;
     if (aiGame) {
         moveOptions = ["rock", "paper", "scissors"];
-        oppMove = moveOptions[Math.floor(Math.random() * 3)];
+        if(aiMode === "random"){
+            oppMove = moveOptions[Math.floor(Math.random() * 3)];
+        }
+        else if(aiMode === "learn"){
+            var playersMoves = [0, 0, 0];
+            for(var i=0; i<playerMoveList.length; i++){
+                if(playerMoveList[i]==="scissors"){
+                    playersMoves[0] = playersMoves[0] + 1;
+                }
+                else if(playerMoveList[i]==="rock"){
+                    playersMoves[1] = playersMoves[1] + 1;
+                }
+                else if(playerMoveList[i]==="paper"){
+                    playersMoves[2] = playersMoves[2] + 1;
+                }
+            }
+            if(playersMoves[0] === playersMoves[1]){
+                if(playersMoves[2]>playersMoves[0]){
+                    moveOptions.splice(0,2);
+                }
+                else if(playersMoves[2]<playersMoves[0]){
+                    moveOptions.splice(2,1);
+                }
+            }
+            else if(playersMoves[0] > playersMoves[1]){
+                if(playersMoves[2]>playersMoves[0]){
+                    moveOptions.splice(0,2);
+                }
+                else if(playersMoves[2] === playersMoves[0]){
+                    moveOptions.splice(1,1);
+                }
+                else{
+                    moveOptions.splice(1,2);
+                }
+            }
+            else{
+                if(playersMoves[2]>playersMoves[1]){
+                    moveOptions.splice(0,2);
+                }
+                else if(playersMoves[2] === playersMoves[1]){
+                    moveOptions.splice(0,1);
+                }
+                else{
+                    moveOptions.splice(2,1);
+                    moveOptions.splice(0,1);
+                }
+            }
+            oppMove = moveOptions[Math.floor(Math.random() * moveOptions.length)];
+            console.log(playersMoves);
+            playerMoveList.push(move);
+        }
+        else{
+            if(move==="rock"){
+                if(aiMode === "cheat") { oppMove = "paper"; }
+                else if(aiMode === "let") { oppMove = "scissors"; }
+            }
+            else if(move==="paper"){
+                if(aiMode === "cheat") { oppMove = "scissors"; }
+                else if(aiMode === "let") { oppMove = "rock"; }
+            }
+            else if(move==="scissors"){
+                if(aiMode === "cheat") { oppMove = "rock"; }
+                else if(aiMode === "let") { oppMove = "paper"; }
+            }
+        }
         resultDelay = 750;
     }
     else {
@@ -414,7 +481,24 @@ $('#chat-button').on('click', function (event) {
     audio.play();
     if (aiGame) {
         setTimeout(function(){
-            $('#chat-box').prepend('<p class="chat-line"><b style="color: var(--player-2-color)"> Computer:</b> I am not a chat bot.</p>');
+            var aiMessage = "I am not a chat bot.";
+            if(message.toLowerCase().indexOf("cheat")>=0){
+                aiMode = "cheat";
+                aiMessage = "Prepare to lose.";
+            }
+            else if(message.toLowerCase().indexOf("let")>=0){
+                aiMode = "let";
+                aiMessage = "I'll go easy on ya.";
+            }
+            else if(message.toLowerCase().indexOf("random")>=0){
+                aiMode = "random";
+                aiMessage = "I'll play randomly";
+            }
+            else if(message.toLowerCase().indexOf("learn")>=0){
+                aiMode = "learn";
+                aiMessage = "I'll try my very best!";
+            }
+            $('#chat-box').prepend('<p class="chat-line"><b style="color: var(--player-2-color)">Computer: </b>' + aiMessage + '</p>');
             audio.src = "assets/sounds/imrcv.wav";
             audio.play();
         },2000);
