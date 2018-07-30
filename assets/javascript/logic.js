@@ -13,7 +13,6 @@ const delay = 3000;
 firebase.initializeApp(config);
 var database = firebase.database();
 var connectionsRef = database.ref("/connections");
-var connectedRef = database.ref(".info/connected");
 var opponentRefs = [];
 var player = {};
 var opponent = {};
@@ -28,32 +27,52 @@ var currentScore = 0;
 var oppMove;
 var mute = false;
 
-// on user's connection status change
-connectedRef.on("value", function (snapshot) {
-    if (snapshot.val()) {
-        var con = connectionsRef.push(true);
-        player.id = con.key;
-        player.name = prompt("What is your name?");
-        if (player.name === null || player.name === "") {
-            var randomNames = ["Abagall", "Bobbert", "Charnie", "Dagmund", "Eggward", "Francille", "Gertle", "Haverstraw", "Irvind", "Jacqueles", "Kimber", "Lemmant", "Mennis", "Nodell", "Ophelie", "Pert", "Quincely", "Rennifer", "Samanda", "Thumbly", "Usanna", "Vixoria", "Wembly", "Xavidar", "Yanny", "Zelma"];
-            player.name = randomNames[Math.floor(Math.random() * randomNames.length)];
-        }
-        player.move = "x";
-        $('#player-1-name').text(player.name);
-        con.onDisconnect().remove();
-        var me = gamesRef.child(game).child(player.id);
-        me.update({ name: player.name, waiting: false, newGame: "lobby" });
-        me.onDisconnect().remove();
-    }
-}, function (errorObject) {
-    console.log("An error occured on the connected reference: " + errorObject.code);
-});
+$(function () {
+
+    // Display the user name modal on page load and focus input so user can begin typing name immediately.
+    $('#nameModal').modal('show');
+    $('#nameModal').on('shown.bs.modal', function (e) {
+        $('#user-name').trigger('focus');
+    });
+
+    // No submit button, but "enter" will trigger submit function. Prevent page loading and hide the modal.
+    $('form').submit(function (e) {
+        e.preventDefault();
+        $('#nameModal').modal('hide');
+    });
+
+    // Save the username inputted when the modal is hidden, regardless of whether the "save" button was clicked, the "x" button, or the user clicked off screen.
+    $('#nameModal').on('hide.bs.modal', function () {
+        player.name = $('#user-name').val().trim();
+
+        // on user's connection status change
+        var connectedRef = database.ref(".info/connected");
+        connectedRef.on("value", function (snapshot) {
+            if (snapshot.val()) {
+                var con = connectionsRef.push(true);
+                player.id = con.key;
+                if (player.name === null || player.name === "") {
+                    var randomNames = ["Abagall", "Bobbert", "Charnie", "Dagmund", "Eggward", "Francille", "Gertle", "Haverstraw", "Irvind", "Jacqueles", "Kimber", "Lemmant", "Mennis", "Nodell", "Ophelie", "Pert", "Quincely", "Rennifer", "Samanda", "Thumbly", "Usanna", "Vixoria", "Wembly", "Xavidar", "Yanny", "Zelma"];
+                    player.name = randomNames[Math.floor(Math.random() * randomNames.length)];
+                }
+                player.move = "x";
+                $('#player-1-name').text(player.name);
+                con.onDisconnect().remove();
+                var me = gamesRef.child(game).child(player.id);
+                me.update({ name: player.name, waiting: false, newGame: "lobby" });
+                me.onDisconnect().remove();
+            }
+        }, function (errorObject) {
+            console.log("An error occured on the connected reference: " + errorObject.code);
+        });
+    })
+})
 
 gamesRef.on("value", function (snapshot) {
-    try{
+    try {
         var players = snapshot.val()[game];
     }
-    catch(err){
+    catch (err) {
         return;
     }
 
@@ -109,10 +128,10 @@ gamesRef.on("value", function (snapshot) {
     // If your game has already started but your game room only has one player, they must have disconnected. Return to the lobby.
     else if (Object.keys(players['players']).length === 1 && gameStarted) {
         // stop listening for updates to opponent
-        opponentRefs.forEach(function(ref){
+        opponentRefs.forEach(function (ref) {
             ref.off();
         });
-        
+
         // return to lobby
         gameStarted = false;
         var oldGame = game;
@@ -233,7 +252,7 @@ function nextGame() {
     }
 
     // Show the waiting for opponent screen
-    else{
+    else {
         waitingForOpponent();
     }
 
@@ -323,7 +342,7 @@ function checkMoves() {
 
 // Behavior when the player has won
 function win() {
-    
+
     // If this is called when a game is already in progress, ignore it
     if (gameStarted) { return; }
 
@@ -426,7 +445,7 @@ function scoreUp() {
     var me = gamesRef.child(game).child("players").child(player.id);
     currentScore++;
     $('#player-1-score').text(currentScore);
-    if(aiGame){ return; }
+    if (aiGame) { return; }
     me.update({ points: currentScore });
 }
 
@@ -492,54 +511,54 @@ function makeMove(move) {
 
         // A truly random opponent chooses randomly from among the three options.
         // This is the default behavior of the AI
-        if(aiMode === "random"){
+        if (aiMode === "random") {
             oppMove = moveOptions[Math.floor(Math.random() * 3)];
         }
 
         // A "dumb" learning algorithm, which bases its next move selection on what the player has chosen so far
         // The computer choses a move that will beat the player's most common choice until now (excluding the current choice)
-        else if(aiMode === "learn"){
+        else if (aiMode === "learn") {
             var playersMoves = [0, 0, 0];
-            for(var i=0; i<playerMoveList.length; i++){
-                if(playerMoveList[i]==="scissors"){
+            for (var i = 0; i < playerMoveList.length; i++) {
+                if (playerMoveList[i] === "scissors") {
                     playersMoves[0] = playersMoves[0] + 1;
                 }
-                else if(playerMoveList[i]==="rock"){
+                else if (playerMoveList[i] === "rock") {
                     playersMoves[1] = playersMoves[1] + 1;
                 }
-                else if(playerMoveList[i]==="paper"){
+                else if (playerMoveList[i] === "paper") {
                     playersMoves[2] = playersMoves[2] + 1;
                 }
             }
-            if(playersMoves[0] === playersMoves[1]){
-                if(playersMoves[2]>playersMoves[0]){
-                    moveOptions.splice(0,2);
+            if (playersMoves[0] === playersMoves[1]) {
+                if (playersMoves[2] > playersMoves[0]) {
+                    moveOptions.splice(0, 2);
                 }
-                else if(playersMoves[2]<playersMoves[0]){
-                    moveOptions.splice(2,1);
-                }
-            }
-            else if(playersMoves[0] > playersMoves[1]){
-                if(playersMoves[2]>playersMoves[0]){
-                    moveOptions.splice(0,2);
-                }
-                else if(playersMoves[2] === playersMoves[0]){
-                    moveOptions.splice(1,1);
-                }
-                else{
-                    moveOptions.splice(1,2);
+                else if (playersMoves[2] < playersMoves[0]) {
+                    moveOptions.splice(2, 1);
                 }
             }
-            else{
-                if(playersMoves[2]>playersMoves[1]){
-                    moveOptions.splice(0,2);
+            else if (playersMoves[0] > playersMoves[1]) {
+                if (playersMoves[2] > playersMoves[0]) {
+                    moveOptions.splice(0, 2);
                 }
-                else if(playersMoves[2] === playersMoves[1]){
-                    moveOptions.splice(0,1);
+                else if (playersMoves[2] === playersMoves[0]) {
+                    moveOptions.splice(1, 1);
                 }
-                else{
-                    moveOptions.splice(2,1);
-                    moveOptions.splice(0,1);
+                else {
+                    moveOptions.splice(1, 2);
+                }
+            }
+            else {
+                if (playersMoves[2] > playersMoves[1]) {
+                    moveOptions.splice(0, 2);
+                }
+                else if (playersMoves[2] === playersMoves[1]) {
+                    moveOptions.splice(0, 1);
+                }
+                else {
+                    moveOptions.splice(2, 1);
+                    moveOptions.splice(0, 1);
                 }
             }
 
@@ -550,21 +569,21 @@ function makeMove(move) {
             // The computer keeps track of the player's current move
             playerMoveList.push(move);
         }
-        else{
+        else {
 
             // If the computer is in "cheat" mode it will automatically win every time.
             // If the computer is in "let" mode it will automatically let the player win every time.
-            if(move==="rock"){
-                if(aiMode === "cheat") { oppMove = "paper"; }
-                else if(aiMode === "let") { oppMove = "scissors"; }
+            if (move === "rock") {
+                if (aiMode === "cheat") { oppMove = "paper"; }
+                else if (aiMode === "let") { oppMove = "scissors"; }
             }
-            else if(move==="paper"){
-                if(aiMode === "cheat") { oppMove = "scissors"; }
-                else if(aiMode === "let") { oppMove = "rock"; }
+            else if (move === "paper") {
+                if (aiMode === "cheat") { oppMove = "scissors"; }
+                else if (aiMode === "let") { oppMove = "rock"; }
             }
-            else if(move==="scissors"){
-                if(aiMode === "cheat") { oppMove = "rock"; }
-                else if(aiMode === "let") { oppMove = "paper"; }
+            else if (move === "scissors") {
+                if (aiMode === "cheat") { oppMove = "rock"; }
+                else if (aiMode === "let") { oppMove = "paper"; }
             }
         }
 
@@ -588,10 +607,10 @@ function makeMove(move) {
 }
 
 // Play audio
-function play(audioSource){
-    if(mute){ return; }
+function play(audioSource) {
+    if (mute) { return; }
     var audio = document.getElementById('audio');
-    audio.src = "assets/sound/" + audioSource;
+    audio.src = "assets/sounds/" + audioSource;
     audio.play();
 }
 
@@ -615,31 +634,31 @@ $('#chat-button').on('click', function (event) {
     if (aiGame) {
 
         // Delay the response (mostly for the audio effect)
-        setTimeout(function(){
+        setTimeout(function () {
 
             // Default message
             var aiMessage = "I am not a chat bot.";
 
             // If the message contains the word "cheat", change the AI to cheat mode
-            if(message.toLowerCase().indexOf("cheat")>=0){
+            if (message.toLowerCase().indexOf("cheat") >= 0) {
                 aiMode = "cheat";
                 aiMessage = "Prepare to lose.";
             }
 
             // If the message contains the word "let", change the AI to let mode
-            else if(message.toLowerCase().indexOf("let")>=0){
+            else if (message.toLowerCase().indexOf("let") >= 0) {
                 aiMode = "let";
                 aiMessage = "I'll go easy on ya.";
             }
 
             // If the message contains the word "random", change the AI to random mode
-            else if(message.toLowerCase().indexOf("random")>=0){
+            else if (message.toLowerCase().indexOf("random") >= 0) {
                 aiMode = "random";
                 aiMessage = "I'll play randomly";
             }
 
             // If the message contains the word "learn", change the AI to learn mode
-            else if(message.toLowerCase().indexOf("learn")>=0){
+            else if (message.toLowerCase().indexOf("learn") >= 0) {
                 aiMode = "learn";
                 playerMoveList = [];
                 aiMessage = "I'll try my very best!";
@@ -648,7 +667,7 @@ $('#chat-button').on('click', function (event) {
             // Display the message from the AI and play the IM message received sound
             $('#chat-box').prepend('<p class="chat-line"><b style="color: var(--player-2-color)">Computer: </b>' + aiMessage + '</p>');
             play("imrcv.wav");
-        },2000);
+        }, 2000);
     }
 
     // Chatting to a player: update the database with the message
