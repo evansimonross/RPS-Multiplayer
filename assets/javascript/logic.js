@@ -14,6 +14,7 @@ firebase.initializeApp(config);
 var database = firebase.database();
 var connectionsRef = database.ref("/connections");
 var connectedRef = database.ref(".info/connected");
+var opponentRefs = [];
 var player = {};
 var opponent = {};
 var game = "lobby";
@@ -25,6 +26,7 @@ var aiScore = 0;
 var playerMoveList = [];
 var currentScore = 0;
 var oppMove;
+var mute = false;
 
 // on user's connection status change
 connectedRef.on("value", function (snapshot) {
@@ -48,7 +50,12 @@ connectedRef.on("value", function (snapshot) {
 });
 
 gamesRef.on("value", function (snapshot) {
-    var players = snapshot.val()[game];
+    try{
+        var players = snapshot.val()[game];
+    }
+    catch(err){
+        return;
+    }
 
     // If the player is currently in the lobby, check to see if there is a game partner
     if (game === "lobby") {
@@ -65,8 +72,7 @@ gamesRef.on("value", function (snapshot) {
                 commenceGame();
             }
             var audio = document.getElementById('audio');
-            audio.src = "assets/sounds/dooropen.wav";
-            audio.play();
+            play("dooropen.wav");
             return;
         }
 
@@ -102,16 +108,21 @@ gamesRef.on("value", function (snapshot) {
 
     // If your game has already started but your game room only has one player, they must have disconnected. Return to the lobby.
     else if (Object.keys(players['players']).length === 1 && gameStarted) {
+        // stop listening for updates to opponent
+        opponentRefs.forEach(function(ref){
+            ref.off();
+        });
+        
         // return to lobby
         gameStarted = false;
-        gamesRef.child(game).remove();
+        var oldGame = game;
         game = "lobby";
         var me = gamesRef.child(game).child(player.id);
+        gamesRef.child(oldGame).remove();
         $('#player-2-name').text("Computer");
         scoreReset();
         var audio = document.getElementById('audio');
-        audio.src = "assets/sounds/doorslam.wav";
-        audio.play();
+        play("doorslam.wav");
         me.update({ name: player.name, waiting: false, newGame: "lobby" });
         me.onDisconnect().remove();
         aiGame = true;
@@ -122,8 +133,7 @@ gamesRef.on("value", function (snapshot) {
     // If your game hasn't started yet and your game room has two players, it should begin.
     else if (Object.keys(players['players']).length === 2 && !gameStarted) {
         var audio = document.getElementById('audio');
-        audio.src = "assets/sounds/dooropen.wav";
-        audio.play();
+        play("dooropen.wav");
         aiGame = false;
         scoreReset();
         commenceGame();
@@ -172,6 +182,7 @@ function commenceGame() {
         }, function (errorObject) {
             console.log("An error occured on the opponent's points reference: " + errorObject.code);
         });
+        opponentRefs.push(pointsRef);
 
         // Listen for changes in opponent's move and execute functions accordingly.
         var moveRef = database.ref("/games/" + game + "/players/" + opponentId + "/move");
@@ -181,6 +192,7 @@ function commenceGame() {
         }, function (errorObject) {
             console.log("An error occured on the opponent's move reference: " + errorObject.code);
         });
+        opponentRefs.push(moveRef);
 
         // Listen for changes in opponent's chat message and display it in the chat box & play the AIM message received sound
         var messageRef = database.ref("/games/" + game + "/players/" + opponentId + "/message");
@@ -188,11 +200,11 @@ function commenceGame() {
             if (snapshot.val() === "" || snapshot.val() === null) { return; }
             $('#chat-box').prepend('<p class="chat-line"><b style="color: var(--player-2-color)">' + $('#player-2-name').text() + ':</b> ' + snapshot.val() + '</p>');
             var audio = document.getElementById('audio');
-            audio.src = "assets/sounds/imrcv.wav";
-            audio.play();
+            play("imrcv.wav");
         }, function (errorObject) {
             console.log("An error occured on the opponent's message reference: " + errorObject.code);
         });
+        opponentRefs.push(messageRef);
     });
 }
 
@@ -575,6 +587,14 @@ function makeMove(move) {
     setTimeout(checkMoves, resultDelay);
 }
 
+// Play audio
+function play(audioSource){
+    if(mute){ return; }
+    var audio = document.getElementById('audio');
+    audio.src = "assets/sound/" + audioSource;
+    audio.play();
+}
+
 // Chat functionality when the player clicks "Send"
 $('#chat-button').on('click', function (event) {
 
@@ -589,9 +609,7 @@ $('#chat-button').on('click', function (event) {
     // Display the message with the player's name in blue, a la AIM messenger, and play the classic IM sent sound
     $('#chat-box').prepend('<p class="chat-line"><b style="color: var(--player-1-color)">' + player.name + ':</b> ' + message + '</p>');
     var me = gamesRef.child(game).child("players").child(player.id);
-    var audio = document.getElementById('audio');
-    audio.src = "assets/sounds/imsend.wav";
-    audio.play();
+    play("imsend.wav");
 
     // Chatting to the computer
     if (aiGame) {
@@ -629,8 +647,7 @@ $('#chat-button').on('click', function (event) {
 
             // Display the message from the AI and play the IM message received sound
             $('#chat-box').prepend('<p class="chat-line"><b style="color: var(--player-2-color)">Computer: </b>' + aiMessage + '</p>');
-            audio.src = "assets/sounds/imrcv.wav";
-            audio.play();
+            play("imrcv.wav");
         },2000);
     }
 
