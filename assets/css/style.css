@@ -33,6 +33,8 @@ h4{
 p{
     font-size: 1.5em;
     text-align: center;
+    margin: 15px;
+    margin-top: 0px;
 }
 
 .chat-line{
@@ -99,12 +101,12 @@ p{
 
 #my-move{
     color: var(--player-1-color);
-    font-size: 4em;
+    font-size: 3.75em;
 }
 
 #opponent-move{
     color: var(--player-2-color);
-    font-size: 4em;
+    font-size: 3.75em;
 }
 
 #header-container{
@@ -178,5 +180,9 @@ p{
     #message{
         font-size: 6em;
         width: 45%;
+    }
+
+    p{
+        font-size: 1.25em;
     }
 }
