@@ -17,7 +17,14 @@ var gamesRef = database.ref("/games");
 var opponentRefs = [];
 
 // game stuff
-var player = {};
+var player = {
+    humanWins: 0,
+    humanDraws: 0,
+    humanLosses: 0,
+    aiWins: 0,
+    aiDraws: 0,
+    aiLosses: 0
+};
 var opponent = {};
 var oppMove;
 var game = "lobby";
@@ -55,12 +62,20 @@ $(function () {
         var connectedRef = database.ref(".info/connected");
         connectedRef.on("value", function (snapshot) {
             if (snapshot.val()) {
-                var con = connectionsRef.push(true);
+                var con = connectionsRef.push({
+                    humanWins: 0,
+                    humanDraws: 0,
+                    humanLosses: 0,
+                    aiWins: 0,
+                    aiDraws: 0,
+                    aiLosses: 0
+                });
                 player.id = con.key;
                 if (player.name === null || player.name === "") {
                     var randomNames = ["Abagall", "Bobbert", "Charnie", "Dagmund", "Eggward", "Francille", "Gertle", "Haverstraw", "Irvind", "Jacqueles", "Kimber", "Lemmant", "Mennis", "Nodell", "Ophelie", "Pert", "Quincely", "Rennifer", "Samanda", "Thumbly", "Usanna", "Vixoria", "Wembly", "Xavidar", "Yanny", "Zelma"];
                     player.name = randomNames[Math.floor(Math.random() * randomNames.length)];
                 }
+                con.update({name: player.name});
                 player.move = "x";
                 $('#player-1-name').text(player.name);
                 con.onDisconnect().remove();
@@ -352,15 +367,21 @@ function win() {
     // If this is called when a game is already in progress, ignore it
     if (gameStarted) { return; }
 
+    var me = connectionsRef.child(player.id)
+
     // If this is a game against the AI, "gameStarted" should never be true
     if (aiGame) {
         gameStarted = false;
+        player.aiWins++;
+        me.update({ aiWins: player.aiWins });
     }
 
     // If this is a game against a human, a new game will start soon so "gameStarted" should be true.
     // This also prevents the method from being repeatedly called... This was a problem in early development due to the "scoreUp" method updating the database and repeatedly triggering a database reference listener
     else {
         gameStarted = true;
+        player.humanWins++;
+        me.update({ humanWins: player.humanWins });
     }
 
     // Raise the player's score and send it to the database
@@ -386,17 +407,23 @@ function lose() {
     // If this is called when a game is already in progress, ignore it
     if (gameStarted) { return; }
 
+    var me = connectionsRef.child(player.id)
+
     // If this is a game against the AI, "gameStarted" should never be true
     // If the AI has won, its score should be increased and displayed.
     if (aiGame) {
         gameStarted = false;
         aiScore++;
         $('#player-2-score').text(aiScore);
+        player.aiLosses++;
+        me.update({ aiLosses: player.aiLosses });
     }
 
     // If this is a game against a human, a new game will start soon so "gameStarted" should be true.
     else {
         gameStarted = true;
+        player.humanLosses++;
+        me.update({ humanLosses: player.humanLosses });
     }
 
     // Display the loss message
@@ -419,14 +446,20 @@ function draw() {
     // If this is called when a game is already in progress, ignore it
     if (gameStarted) { return; }
 
+    var me = connectionsRef.child(player.id)
+
     // If this is a game against the AI, "gameStarted" should never be true
     if (aiGame) {
         gameStarted = false;
+        player.aiDraws++;
+        me.update({ aiDraws: player.aiDraws });
     }
 
     // If this is a game against a human, a new game will start soon so "gameStarted" should be true.
     else {
         gameStarted = true;
+        player.humanDraws++;
+        me.update({ humanDraws: player.humanDraws });
     }
 
     // Display the draw message
@@ -683,13 +716,13 @@ $('#chat-button').on('click', function (event) {
 });
 
 // Mute option functionality
-$('#mute-button').on('click',function(){
+$('#mute-button').on('click', function () {
     mute = !mute;
-    if(mute){
+    if (mute) {
         $('#mute-icon').removeClass('fa-volume-up');
         $('#mute-icon').addClass('fa-volume-off');
     }
-    else{
+    else {
         $('#mute-icon').removeClass('fa-volume-off');
         $('#mute-icon').addClass('fa-volume-up');
     }
