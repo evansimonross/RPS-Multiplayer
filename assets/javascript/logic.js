@@ -13,18 +13,24 @@ const delay = 3000;
 firebase.initializeApp(config);
 var database = firebase.database();
 var connectionsRef = database.ref("/connections");
+var gamesRef = database.ref("/games");
 var opponentRefs = [];
+
+// game stuff
 var player = {};
 var opponent = {};
+var oppMove;
 var game = "lobby";
-var gamesRef = database.ref("/games");
 var gameStarted = false;
+
+// ai stuff
 var aiGame = false;
 var aiMode = "random";
 var aiScore = 0;
 var playerMoveList = [];
 var currentScore = 0;
-var oppMove;
+
+// options
 var mute = false;
 
 $(function () {
@@ -675,3 +681,16 @@ $('#chat-button').on('click', function (event) {
         me.update({ message: message });
     }
 });
+
+// Mute option functionality
+$('#mute-button').on('click',function(){
+    mute = !mute;
+    if(mute){
+        $('#mute-icon').removeClass('fa-volume-up');
+        $('#mute-icon').addClass('fa-volume-off');
+    }
+    else{
+        $('#mute-icon').removeClass('fa-volume-off');
+        $('#mute-icon').addClass('fa-volume-up');
+    }
+})

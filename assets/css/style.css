@@ -84,12 +84,17 @@ p{
 }
 
 #chat-text{
-    width: calc(100% - 58px);
+    width: calc(100% - 96px);
     margin-top: 5px;
 }
 
-#chat-button{
+.btn-dark{
     margin-bottom: 4px;
+}
+
+#mute-button{
+    width: 34px;
+    text-align: left;
 }
 
 #my-move{
