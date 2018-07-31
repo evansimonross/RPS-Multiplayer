@@ -23,6 +23,22 @@ h2{
     text-decoration: underline;
 }
 
+#player-1-name{
+    color:var(--player-1-color)
+}
+
+#player-1-name:hover{
+    color: black;
+}
+
+#player-2-name{
+    color:var(--player-2-color)
+}
+
+#player-2-name:hover{
+    color: black;
+}
+
 h4{
     text-align: center;
     font-weight: 600;

@@ -23,7 +23,8 @@ var player = {
     humanLosses: 0,
     aiWins: 0,
     aiDraws: 0,
-    aiLosses: 0
+    aiLosses: 0, 
+    name: ""
 };
 var opponent = {};
 var oppMove;
@@ -56,6 +57,7 @@ $(function () {
 
     // Save the username inputted when the modal is hidden, regardless of whether the "save" button was clicked, the "x" button, or the user clicked off screen.
     $('#nameModal').on('hide.bs.modal', function () {
+        if(player.name!=""){ return; }
         player.name = $('#user-name').val().trim();
 
         // on user's connection status change
@@ -75,7 +77,7 @@ $(function () {
                     var randomNames = ["Abagall", "Bobbert", "Charnie", "Dagmund", "Eggward", "Francille", "Gertle", "Haverstraw", "Irvind", "Jacqueles", "Kimber", "Lemmant", "Mennis", "Nodell", "Ophelie", "Pert", "Quincely", "Rennifer", "Samanda", "Thumbly", "Usanna", "Vixoria", "Wembly", "Xavidar", "Yanny", "Zelma"];
                     player.name = randomNames[Math.floor(Math.random() * randomNames.length)];
                 }
-                con.update({name: player.name});
+                con.update({ name: player.name });
                 player.move = "x";
                 $('#player-1-name').text(player.name);
                 con.onDisconnect().remove();
@@ -245,6 +247,8 @@ function commenceGame() {
             console.log("An error occured on the opponent's message reference: " + errorObject.code);
         });
         opponentRefs.push(messageRef);
+
+        opponent.id = opponentId;
     });
 }
 
@@ -653,6 +657,31 @@ function play(audioSource) {
     audio.play();
 }
 
+function showModal(id) {
+    if(id===undefined){ return; }
+    $('.modal-body').empty();
+    $('.modal-footer').empty();
+    connectionsRef.child(id).once('value', function (response) {
+        var stats = response.val();
+        $('.modal-body').append('<p><b>Against human opponent:');
+        var humanList = $('<ul>');
+        humanList.append($('<li><b>Wins</b>: ' + stats.humanWins + '</li>'));
+        humanList.append($('<li><b>Losses</b>: ' + stats.humanLosses + '</li>'));
+        humanList.append($('<li><b>Draws</b>: ' + stats.humanDraws + '</li>'));
+        $('.modal-body').append(humanList)
+
+        $('.modal-body').append('<p><b>Against AI opponent:');
+        var aiList = $('<ul>');
+        aiList.append($('<li><b>Wins</b>: ' + stats.aiWins + '</li>'));
+        aiList.append($('<li><b>Losses</b>: ' + stats.aiLosses + '</li>'));
+        aiList.append($('<li><b>Draws</b>: ' + stats.aiDraws + '</li>'));
+        $('.modal-body').append(aiList)
+        $('#nameModalLabel').text(stats.name);
+
+        $('#nameModal').modal('show');
+    })
+}
+
 // Chat functionality when the player clicks "Send"
 $('#chat-button').on('click', function (event) {
 
@@ -727,3 +756,12 @@ $('#mute-button').on('click', function () {
         $('#mute-icon').addClass('fa-volume-up');
     }
 })
+
+function playerInfo(){
+    showModal(player.id);
+}
+
+function opponentInfo(){
+    if(aiGame) { return; }
+    showModal(opponent.id);
+}
