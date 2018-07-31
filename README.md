@@ -8,6 +8,8 @@ Each round is a simple game of rock-paper-scissors. Each player must choose whic
 
 Players can also chat with their opponent during the game. Chat messages sent and received, as well as opponents entering and leaving a game room, play the classic AIM sounds. The game is also themed with AIM's "I'm blue, you're red" color scheme. 
 
+The names of players can be clicked to display all their stats from their current browsing session, including total wins/losses/draws against human opponents and against the AI. 
+
 ## Project History
 This project was a homework assignment for the Columbia Full Stack Web Development Coding Bootcamp, testing our preliminary ability to use Firebase. Though the project specifications only required two simulatenous connections to be playable, I challenged myself by coding the ability to use unlimited simulatenous connections and automatic matching. The introduction of an AI opponent when no human opponent is available was also my own idea. Previous projects have listed bonus goals but not so with this one, so I made my own! 
 
