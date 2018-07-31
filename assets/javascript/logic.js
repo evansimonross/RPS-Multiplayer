@@ -23,7 +23,7 @@ var player = {
     humanLosses: 0,
     aiWins: 0,
     aiDraws: 0,
-    aiLosses: 0, 
+    aiLosses: 0,
     name: ""
 };
 var opponent = {};
@@ -57,7 +57,7 @@ $(function () {
 
     // Save the username inputted when the modal is hidden, regardless of whether the "save" button was clicked, the "x" button, or the user clicked off screen.
     $('#nameModal').on('hide.bs.modal', function () {
-        if(player.name!=""){ return; }
+        if (player.name != "") { return; }
         player.name = $('#user-name').val().trim();
 
         // on user's connection status change
@@ -657,29 +657,53 @@ function play(audioSource) {
     audio.play();
 }
 
+// Show a modal with the stats of a player of the id given
 function showModal(id) {
-    if(id===undefined){ return; }
-    $('.modal-body').empty();
-    $('.modal-footer').empty();
-    connectionsRef.child(id).once('value', function (response) {
-        var stats = response.val();
+    if (id === undefined) { return; }
+
+    // Show random stats if the player tries to look at the computer's stats.
+    if (id === "computer") {
+        $('.modal-body').empty();
+        $('.modal-footer').empty();
         $('.modal-body').append('<p><b>Against human opponent:');
         var humanList = $('<ul>');
-        humanList.append($('<li><b>Wins</b>: ' + stats.humanWins + '</li>'));
-        humanList.append($('<li><b>Losses</b>: ' + stats.humanLosses + '</li>'));
-        humanList.append($('<li><b>Draws</b>: ' + stats.humanDraws + '</li>'));
+        humanList.append($('<li><b>Wins</b>: ' + Math.floor(Math.random() * 1000000) + '</li>'));
+        humanList.append($('<li><b>Losses</b>: ' + Math.floor(Math.random() * 1000000) + '</li>'));
+        humanList.append($('<li><b>Draws</b>: ' + Math.floor(Math.random() * 1000000) + '</li>'));
         $('.modal-body').append(humanList)
 
         $('.modal-body').append('<p><b>Against AI opponent:');
         var aiList = $('<ul>');
-        aiList.append($('<li><b>Wins</b>: ' + stats.aiWins + '</li>'));
-        aiList.append($('<li><b>Losses</b>: ' + stats.aiLosses + '</li>'));
-        aiList.append($('<li><b>Draws</b>: ' + stats.aiDraws + '</li>'));
+        aiList.append($('<li>Computers do not make war against one another.</li>'));
         $('.modal-body').append(aiList)
-        $('#nameModalLabel').text(stats.name);
 
+        $('#nameModalLabel').text("Computer");
         $('#nameModal').modal('show');
-    })
+    }
+
+    // Show the stats of the id inputted.
+    else {
+        $('.modal-body').empty();
+        $('.modal-footer').empty();
+        connectionsRef.child(id).once('value', function (response) {
+            var stats = response.val();
+            $('.modal-body').append('<p><b>Against human opponent:');
+            var humanList = $('<ul>');
+            humanList.append($('<li><b>Wins</b>: ' + stats.humanWins + '</li>'));
+            humanList.append($('<li><b>Losses</b>: ' + stats.humanLosses + '</li>'));
+            humanList.append($('<li><b>Draws</b>: ' + stats.humanDraws + '</li>'));
+            $('.modal-body').append(humanList)
+
+            $('.modal-body').append('<p><b>Against AI opponent:');
+            var aiList = $('<ul>');
+            aiList.append($('<li><b>Wins</b>: ' + stats.aiWins + '</li>'));
+            aiList.append($('<li><b>Losses</b>: ' + stats.aiLosses + '</li>'));
+            aiList.append($('<li><b>Draws</b>: ' + stats.aiDraws + '</li>'));
+            $('.modal-body').append(aiList)
+            $('#nameModalLabel').text(stats.name);
+            $('#nameModal').modal('show');
+        });
+    }
 }
 
 // Chat functionality when the player clicks "Send"
@@ -757,11 +781,13 @@ $('#mute-button').on('click', function () {
     }
 })
 
-function playerInfo(){
+// Show the player's stats
+function playerInfo() {
     showModal(player.id);
 }
 
-function opponentInfo(){
-    if(aiGame) { return; }
+// Show the opponent's stats
+function opponentInfo() {
+    if (aiGame) { opponent.id = "computer"; }
     showModal(opponent.id);
 }
