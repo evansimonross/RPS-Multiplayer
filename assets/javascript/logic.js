@@ -497,7 +497,7 @@ function scoreReset() {
     currentScore = 0;
     $('#player-1-score').text(currentScore);
     aiScore = 0;
-    $('#player-1-score').text(aiScore);
+    $('#player-2-score').text(aiScore);
     aiMode = "random";
 }
 
