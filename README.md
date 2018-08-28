@@ -2,6 +2,8 @@
 A rock-paper-scissors game with multiplayer functionality. 
 
 ## How to Play
+[Click here to play the game](https://evansimonross.github.io/RPS-Multiplayer/).
+
 After connecting to the game and inputting a name, the player is automatically matched with any other person connected and not in a game. Multiple two-person games can occur simultaneously. Any players not in a game will wait in the lobby, with the option to play against the computer while they wait for a human opponent. 
 
 Each round is a simple game of rock-paper-scissors. Each player must choose which gesture to throw, and once both players have chosen, the result is displayed on the screen. Players can continue for as many rounds as they'd like.
